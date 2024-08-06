@@ -1,0 +1,54 @@
+import { Interceptors, RequestInterceptor, RequestInterceptorSync, ResponseInterceptor, ResponseInterceptorSync, ResponseXhrInterceptor } from "../utssdk/interface.uts";
+// import * as KuxRequest from '../utssdk/interface';
+import { setInterceptors } from './store/index';
+
+export class InterceptorManager {
+	private interceptors: Interceptors;
+	
+	constructor () {
+		this.interceptors = {
+			request: [] as RequestInterceptor[],
+			response: [] as ResponseInterceptor[],
+			responseXhr: [] as ResponseXhrInterceptor[],
+			requestSync: null,
+			responseSync: null
+		} as Interceptors;
+	}
+	
+	useRequest (interceptor: RequestInterceptor): InterceptorManager {
+		this.interceptors.request.push(interceptor);
+		setInterceptors(this.interceptors);
+		return this;
+	}
+	
+	useRequestSync (interceptor: RequestInterceptorSync): InterceptorManager {
+		this.interceptors.requestSync = interceptor;
+		setInterceptors(this.interceptors);
+		return this;
+	}
+	
+	useResponse (interceptor: ResponseInterceptor): InterceptorManager {
+		this.interceptors.response.push(interceptor);
+		setInterceptors(this.interceptors);
+		return this;
+	}
+	
+	/**
+	 * 原始响应拦截
+	 * + `v1.0.11` 及以上版本支持
+	 */
+	useResponseXhr (interceptor: ResponseXhrInterceptor): InterceptorManager {
+		this.interceptors.responseXhr.push(interceptor);
+		setInterceptors(this.interceptors);
+		return this;
+	}
+	
+	/**
+	 * 同步响应拦截暂不支持
+	 */
+	private useResponseSync (interceptor: ResponseInterceptorSync): InterceptorManager {
+		this.interceptors.responseSync = interceptor;
+		setInterceptors(this.interceptors);
+		return this;
+	}
+};

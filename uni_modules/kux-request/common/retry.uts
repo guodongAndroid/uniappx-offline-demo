@@ -1,0 +1,57 @@
+import { RequestConfig } from "../utssdk/interface.uts";
+// import * as KuxRequest from '../utssdk/interface';
+import { Request } from './request';
+import { Utils } from './utils/index';
+import { KuxFailImpl } from '../utssdk/unierror';
+
+export class RetryManager extends Request {
+	private maxRetryCount: number;
+	private initialDelay: number;
+	private maxDelay: number;
+	
+	constructor (maxRetryCount: number, initialDelay: number, maxDelay: number) {
+		super();
+		this.maxRetryCount = maxRetryCount;
+		this.initialDelay = initialDelay;
+		this.maxDelay = maxDelay;
+	}
+	
+	sendRequest (url: string, options: RequestConfig = {} as RequestConfig): Promise<any> {
+		let retryCount = 0;
+		let delay = this.initialDelay;
+		let timeout = 60000;
+		let _this = this;
+		if (options?.timeout != null) {
+			timeout = parseInt(`${options.timeout}`);
+		}
+		async function doRequest (): Promise<any> {
+			try {
+				return await _this.request(url, options ?? {} as RequestConfig);
+			} catch (error) {
+				if (delay >= timeout) {
+					// throw new KuxFailImpl(900408).error();
+					// throw new KuxFailImpl(900408);
+					throw new KuxFailImpl(900408);
+				}
+				if (retryCount < _this.maxRetryCount) {
+					retryCount++;
+					console.warn(`请求失败，正在尝试重试（${retryCount}）`);
+					await new Utils().sleep(delay);
+					// 根据指数退避算法计算重试时间
+					delay = Math.min(delay * 2, _this.maxDelay);
+					return doRequest();
+				} else {
+					// throw new KuxFailImpl(900500).error();
+					// throw new KuxFailImpl(900500);
+					const fail = new KuxFailImpl(900500);
+					// fail.data = null
+					fail.cause = new UniError(JSON.stringify(error));
+					// fail.cause = new UniError(error['errSubject'], error['errCode'], error['errMsg']);
+					throw fail;
+				}
+			}
+		};
+		
+		return doRequest();
+	}
+};

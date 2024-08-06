@@ -1,0 +1,69 @@
+import { InterceptorManager } from './interceptors.uts';
+import { FilterOptions, UseOptions } from '../utssdk/interface';
+// import * as KuxRequest from "../utssdk/interface";
+import { Request } from './request';
+import { RequestFilters } from './filters';
+import { URL, Utils } from './utils/index';
+import { RetryManager } from './retry';
+import { BatchRequestManager } from './batch';
+
+/**
+ * 创建请求实例
+ * @param {UseOptions} options 实例参数
+ * @returns {Request}
+ */
+export const useRequest = (options: UseOptions): Request => {
+	return new Request(options);
+}
+
+/**
+ * 创建拦截器实例
+ * @returns {InterceptorManager}
+ */
+export const useInterceptor = (): InterceptorManager => {
+	return new InterceptorManager();
+}
+
+/**
+ * 创建过滤器实例
+ * @returns {RequestFilters}
+ */
+export function useFilter (options: FilterOptions = {} as FilterOptions): RequestFilters {
+	return new RequestFilters(options);
+}
+
+/**
+ * 创建URL实例
+ * @returns {URL}
+ */
+export const useURL = (url: string): URL => {
+	return new URL(url);
+}
+
+/**
+ * 创建工具实例
+ */
+export const useUtils = (): Utils => {
+	return new Utils();
+}
+
+/**
+ * 创建请求重试实例
+ * @param {number} maxRetryCount 最大重试次数。指定在请求失败时最多尝试多少次重试。如果请求一直失败，最多只会尝试 `maxRetryCount` 次重试。
+ * @param {number} initialDelay 初始重试等待时间。指定在第一次请求失败后，等待多长时间后再尝试重试。单位是毫秒。
+ * @param {number} maxDelay 最大重试等待时间。指定在重试过程中，等待时间最多不超过多少毫秒。这个参数可以防止等待时间过长。
+ * @returns {RetryManager}
+ */
+export const useRetry = (maxRetryCount: number, initialDelay: number, maxDelay: number): RetryManager => {
+	return new RetryManager(maxRetryCount, initialDelay, maxDelay);
+}
+
+/**
+ * 创建批量请求实例
+ * @returns {BatchRequestManager}
+ */
+export const useBatchRequest = (): BatchRequestManager => {
+	return new BatchRequestManager();
+}
+
+export * from '../utssdk/interface';

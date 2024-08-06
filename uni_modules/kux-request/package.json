@@ -1,0 +1,88 @@
+{
+  "id": "kux-request",
+  "displayName": "kux-request",
+  "version": "1.0.17",
+  "description": "一个简洁高效的`uts`请求库，支持请求同步/异步拦截、请求重试、请求过滤等丰富功能，提供人性化的请求配置，旨在帮助`uniapp x`开发者专注业务开发，提升业务开发效率。",
+  "keywords": [
+    "request",
+    "请求库",
+    "请求拦截",
+    "请求重试",
+    "请求过滤"
+],
+  "repository": "https://gitcode.net/kviewui/kux-request",
+  "engines": {
+    "HBuilderX": "^3.91"
+  },
+  "dcloudext": {
+    "type": "uts",
+    "sale": {
+      "regular": {
+        "price": "0.00"
+      },
+      "sourcecode": {
+        "price": "0.00"
+      }
+    },
+    "contact": {
+      "qq": "1709233528"
+    },
+    "declaration": {
+      "ads": "无",
+      "data": "插件不采集任何数据",
+      "permissions": "基础网络请求权限"
+    },
+    "npmurl": ""
+  },
+  "uni_modules": {
+    "dependencies": [],
+    "encrypt": [],
+    "platforms": {
+      "cloud": {
+        "tcb": "y",
+        "aliyun": "y",
+        "alipay": "y"
+      },
+      "client": {
+        "Vue": {
+          "vue2": "u",
+          "vue3": "y"
+        },
+        "App": {
+          "app-android": {
+            "minVersion": "21"
+        },
+          "app-ios": "y"
+        },
+        "H5-mobile": {
+          "Safari": "y",
+          "Android Browser": "y",
+          "微信浏览器(Android)": "y",
+          "QQ浏览器(Android)": "y"
+        },
+        "H5-pc": {
+          "Chrome": "y",
+          "IE": "y",
+          "Edge": "y",
+          "Firefox": "y",
+          "Safari": "y"
+        },
+        "小程序": {
+          "微信": "n",
+          "阿里": "n",
+          "百度": "n",
+          "字节跳动": "n",
+          "QQ": "n",
+          "钉钉": "n",
+          "快手": "n",
+          "飞书": "n",
+          "京东": "n"
+        },
+        "快应用": {
+          "华为": "n",
+          "联盟": "n"
+        }
+      }
+    }
+  }
+}

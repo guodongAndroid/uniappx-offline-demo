@@ -1,0 +1,428 @@
+import { RequestFilters } from "./filters.uts";
+import { FilterOptions, RequestConfig, RequestInterceptor, RequestInterceptorSync, ResponseInterceptor, ResponseXhrInterceptor, UseOptions, UseRetryOptions, RequestFailCallback } from "../utssdk/interface";
+// import * as KuxRequest from '../utssdk/interface';
+import { state } from './store/index';
+import { Utils, URL } from './utils/index';
+import { KuxFailImpl } from '../utssdk/unierror';
+
+export class Request {
+	private baseURL: string;
+	private config: UseOptions;
+	private requestFilters: RequestFilters;
+	public requestTask: RequestTask | null;
+	public beforeSendOptions: RequestConfig | null;
+	// private interceptors: Interceptor[] = [];
+	private _cache: Map<string, any>;
+	private isCache: boolean;
+	private cacheKey: string;
+	private requestFailCallback: RequestFailCallback | null;
+	private aborted: boolean;
+	
+	constructor (config: UseOptions = {
+		baseURL: ''
+	} as UseOptions) {
+		this.baseURL = config.baseURL;
+		this.config = config;
+		this.requestFilters = new RequestFilters({
+			debug: this.config.debug ?? false
+		} as FilterOptions);
+		this.requestTask = null;
+		this.beforeSendOptions = null;
+		this._cache = new Map<string, any>();
+		this.isCache = false;
+		this.cacheKey = '';
+		this.requestFailCallback = null;
+		this.aborted = false;
+	}
+	
+	private _mergeOptions (options: RequestConfig): RequestConfig {
+		const useUtils = new Utils();
+		
+		let _options: RequestConfig = {
+			query: this.config.query,
+			data: this.config.data,
+			timeout: this.config.timeout,
+			dataType: this.config.dataType,
+			responseType: this.config.responseType,
+			sslVerify: this.config.sslVerify,
+			withCredentials: this.config.withCredentials,
+			firstIpv4: this.config.firstIpv4,
+			header: this.config.header,
+			filterRequest: this.config.filterRequest,
+			debug: this.config.debug,
+			xhrCode: this.config.xhrCode,
+			xhrCodeName: this.config.xhrCodeName,
+			xhrMessageName: this.config.xhrMessageName,
+			maxCacheSize: this.config.maxCacheSize,
+			openCache: this.config.openCache
+		};
+		
+		if (options.firstIpv4 != null) {
+			_options.firstIpv4 = options.firstIpv4;
+		}
+		
+		if (options.method != null) {
+			_options.method = options.method;
+		}
+		
+		if (options.timeout != null) {
+			_options.timeout = options.timeout;
+		}
+		
+		if (options.withCredentials != null) {
+			_options.withCredentials = options.withCredentials;
+		}
+		
+		if (options.dataType != null) {
+			_options.dataType = options.dataType;
+		}
+		
+		if (options.responseType != null) {
+			_options.responseType = options.responseType;
+		}
+		
+		if (options.sslVerify != null) {
+			_options.sslVerify = options.sslVerify;
+		}
+		
+		if (options.filterRequest != null) {
+			_options.filterRequest = options.filterRequest;
+		}
+		
+		if (options.query != null) {
+			_options.query = _options.query == null ? {} as UTSJSONObject : options.query;
+			_options.query = useUtils.deepMerge(JSON.parseObject<UTSJSONObject>(JSON.stringify(_options.query!))!, JSON.parseObject<UTSJSONObject>(JSON.stringify(options.query!))!) as UTSJSONObject;
+		}
+		
+		if (options.data != null) {
+			_options.data = _options.data == null ? {} : options.data;
+			_options.data = useUtils.deepMerge(JSON.parseObject<UTSJSONObject>(JSON.stringify(_options.data!))!, JSON.parseObject<UTSJSONObject>(JSON.stringify(options.data!))!) as UTSJSONObject;
+		}
+		
+		if (options.header != null) {
+			_options.header = _options.header == null ? {} as UTSJSONObject : options.header;
+			_options.header = useUtils.deepMerge(JSON.parseObject<UTSJSONObject>(JSON.stringify(_options.header!))!, JSON.parseObject<UTSJSONObject>(JSON.stringify(options.header!))!) as UTSJSONObject;
+		}
+		
+		if (options.debug != null) {
+			_options.debug = options.debug;
+		}
+		
+		if (options.xhrCode != null) {
+			_options.xhrCode = options.xhrCode;
+		}
+		
+		if (options.xhrCodeName != null) {
+			_options.xhrCodeName = options.xhrCodeName;
+		}
+		
+		if (options.xhrMessageName != null) {
+			_options.xhrMessageName = options.xhrMessageName;
+		}
+		
+		_options.maxCacheSize = 10;
+		
+		if (options.maxCacheSize != null) {
+			_options.maxCacheSize = options.maxCacheSize;
+		}
+		
+		_options.openCache = false;
+		
+		if (options.openCache != null) {
+			_options.openCache = options.openCache;
+		}
+		
+		return _options;
+	}
+	
+	private getSearchPrefix (url: string): string {
+		const useUrl = new URL(url);
+		
+		return useUrl.search.length > 0 ? '&' : '?';
+	}
+	
+	private async _request (url: string, options: RequestConfig = {} as RequestConfig): Promise<any> {
+		// 合并默认配置和用户配置
+		let mergedOptions = options;
+		mergedOptions.url = url;
+		mergedOptions.baseURL = this.baseURL;
+		let baseURL = this.baseURL
+		
+		// 这里是为了防止后面请求过程url有值带上了baseURL，所以这里做下二次处理
+		if (mergedOptions.url != null && mergedOptions.url!.indexOf('http') > -1) {
+			const urlInstance: URL = new URL(mergedOptions.url!);
+			mergedOptions.url = urlInstance.pathname
+			baseURL = urlInstance.protocol + '://' + urlInstance.host
+		}
+		
+		if (mergedOptions.needRequestInterceptor == true) {
+			// 调用请求拦截器
+			state.interceptors.request.forEach((interceptor: RequestInterceptor) => {
+				mergedOptions = interceptor(mergedOptions);
+			});
+			if (state.interceptors.requestSync !== null) {
+				mergedOptions = await (state.interceptors.requestSync as RequestInterceptorSync)(mergedOptions);
+			}
+		}
+		
+		let path = mergedOptions.url
+				
+		return new Promise((resolve, reject) => {
+			// 判断当前请求是否被中断
+			if (this.aborted) {
+				reject(new KuxFailImpl(901404));
+				return;
+			}
+			mergedOptions.url = baseURL + path;
+						
+			const useUtils = new Utils();
+			const queryString = useUtils.objToQueryString(mergedOptions.query ?? {});
+			/**
+			 * 处理 query  传参
+			 */
+			if (queryString.length > 0) {
+				// 判断请求地址是否携带参数
+				mergedOptions.url += `${this.getSearchPrefix(`${mergedOptions.url}`)}${queryString}`;
+			}
+			this.beforeSendOptions = mergedOptions;
+			
+			// 判断是否开启请求缓存
+			let _cacheKey = this.cacheKey;
+			if (_cacheKey.length == 0) {
+				_cacheKey = this.getKey(url, this.beforeSendOptions as RequestConfig);
+			}
+			
+			// 判断是否获取缓存数据
+			if (this.isCache) {
+				if (mergedOptions.debug != null && mergedOptions.debug as boolean) {
+					console.warn(`【kux-request:request】本次请求 ${_cacheKey} 为缓存结果`);
+				}
+				this.isCache = false;
+				if (this._cache.get(_cacheKey) != null) {
+					resolve(this._cache.get(_cacheKey));
+				}
+			}
+			
+			this.requestTask = uni.request({
+				url: `${mergedOptions.url}`,
+				method: mergedOptions.method,
+				data: mergedOptions.data,
+				header: mergedOptions.header,
+				dataType: mergedOptions.dataType,
+				timeout: mergedOptions.timeout ?? 60000,
+				responseType: mergedOptions.responseType,
+				sslVerify: mergedOptions.sslVerify,
+				withCredentials: mergedOptions.withCredentials,
+				success: (res: RequestSuccess<any>) => {
+					let response = res.data;
+					
+					if (mergedOptions.needResponseInterceptor == true) {
+						/**
+						 * 原始响应拦截
+						 * + `v1.0.11` 及以上版本支持
+						 */
+						state.interceptors.responseXhr.forEach((interceptor: ResponseXhrInterceptor) => {
+							response = interceptor(res);
+						});
+						// 调用响应拦截
+						state.interceptors.response.forEach((interceptor: ResponseInterceptor) => {
+							response = interceptor(response as any);
+							if (options.xhrResponse == true || this.config.xhrResponse == true) {
+								response = res;
+							}
+						});
+					}
+					// 判断是否有自定义成功状态码
+					if (typeof response === 'object' && mergedOptions.xhrCode != null && mergedOptions.xhrCodeName != null) {
+						const _res = response as UTSJSONObject;
+						if (_res.getAny(`${mergedOptions.xhrCodeName}`) != mergedOptions.xhrCode) {
+							if (mergedOptions.xhrMessageName != null) {
+								const error = new KuxFailImpl(900500);
+								error.errMsg = `${_res.getAny(`${mergedOptions.xhrMessageName}`)}`;
+								error.cause = new SourceError(JSON.stringify(response));
+								// reject(new KuxFailImpl(900500).error(`${_res.getAny(`${mergedOptions.xhrMessageName}`)}`, response as any));
+							} else {
+								reject(new KuxFailImpl(900500));
+							}
+						}
+					}
+					if (mergedOptions.openCache as boolean) {
+						// 判断是否设置最大缓存数量
+						if (this._cache.size >= parseInt(`${mergedOptions.maxCacheSize}`)) {
+							let i = 0;
+							this._cache.forEach((_, key) => {
+								if (i == 0) {
+									this._cache.delete(key);
+								}
+								i++;
+							})
+						}
+						this._cache.set(_cacheKey, response as any);
+					}
+					resolve(response);
+				},
+				fail: (fail: RequestFail) => {
+					// console.log(useUtils.buildUniError('【kux-request:request】', fail.errCode, fail.errMsg));
+					this.requestFailCallback?.(fail);
+					reject(fail);
+				}
+			});
+		});
+	}
+	
+	public getKey (url: string, options: RequestConfig): string {
+		const paramsString = JSON.stringify(options);
+		return `${url}-${paramsString}`;
+	}
+	
+	// use (interceptor: Interceptor) {
+	// 	this.interceptors.push(interceptor);
+	// }
+	/**
+	 * 清除指定key的请求缓存
+	 * @description 请求指定key的请求缓存，如果key为空则清空当前请求实例所有的请求缓存
+	 * @returns {Request}
+	 */
+	clearCache (key: string): Request {
+		if (key.length == 0) {
+			this._cache.clear();
+			return this;
+		}
+		
+		if (this._cache.has(key)) {
+			this._cache.delete(key);
+		}
+		
+		return this;
+	}
+	
+	/**
+	 * 获取指定key的请求缓存结果
+	 * @description 获取指定key的请求缓存结果
+	 * + key默认为 `url`-`options`
+	 * @returns {Request}
+	 */
+	cache (key: string = ''): Request {
+		this.isCache = true;
+		this.cacheKey = key;
+		return this;
+	}
+	
+	/**
+	 * 复写全局配置
+	 * @description 复写当前实例的全局配置，比如data，query，header参数
+	 * @param {RequestConfig} config 配置项
+	 * @returns {Request}
+	 */
+	overrideConfig (config: RequestConfig = {} as RequestConfig): Request {
+		if (config.baseURL != null) {
+			this.config.baseURL = `${config.baseURL}`;
+			this.baseURL = `${config.baseURL}`;
+		}
+		if (config.query != null) {
+			this.config.query = config.query;
+		}
+		if (config.data != null) {
+			this.config.data = config.data;
+		}
+		if (config.header != null) {
+			this.config.header = config.header;
+		}
+		this.config.xhrResponse = config.xhrResponse;
+		return this;
+	}
+	
+	/**
+	 * 全局请求失败捕获
+	 * + `v1.0.10` 及以上版本支持
+	 * @param { RequestFailCallback } callback 回调
+	 */
+	onFail (callback: RequestFailCallback) {
+		this.requestFailCallback = callback;
+	}
+	
+	/**
+	 * request请求
+	 * @param {string} url 请求地址
+	 * @param {RequestConfig} options 请求配置，会覆盖全局配置
+	 * @returns {Promise<any>}
+	 */
+	async request (url: string, options: RequestConfig = {} as RequestConfig): Promise<any> {
+		// 合并默认配置和用户配置
+		let _options = this._mergeOptions(options);
+		// 判断是否开启了过滤请求
+		if (_options.filterRequest != null && (_options.filterRequest as boolean)) {
+			return this.requestFilters.filterRequest(url, _options, (): Promise<any> => this._request(url, _options));
+		}
+		_options.xhrResponse = options.xhrResponse ?? false;
+		this.aborted = false;
+		_options.customData = options.customData ?? null;
+		_options.needRequestInterceptor = options.needRequestInterceptor ?? true
+		_options.needResponseInterceptor = options.needResponseInterceptor ?? true
+		return this._request(url, _options);
+	}
+	
+	/**
+	 * get请求
+	 * @param {string} url 请求地址
+	 * @param {RequestConfig} options 请求配置，会覆盖全局配置
+	 * @returns {Promise<any>}
+	 */
+	async get (url: string, options: RequestConfig = {} as RequestConfig): Promise<any> {
+		let _options = options;
+		_options.method = 'GET';
+		this.aborted = false;
+		return this.request(url, _options);
+	}
+	
+	/**
+	 * post请求
+	 * @param {string} url 请求地址
+	 * @param {RequestConfig} options 请求配置，会覆盖全局配置
+	 * @returns {Promise<any>}
+	 */
+	async post (url: string, options: RequestConfig = {} as RequestConfig): Promise<any> {
+		let _options = options;
+		_options.method = 'POST';
+		this.aborted = false;
+		return this.request(url, _options);
+	}
+	
+	/**
+	 * put请求
+	 * @param {string} url 请求地址
+	 * @param {RequestConfig} options 请求配置，会覆盖全局配置
+	 * @returns {Promise<any>}
+	 */
+	async put (url: string, options: RequestConfig = {} as RequestConfig): Promise<any> {
+		let _options = options;
+		_options.method = 'PUT';
+		this.aborted = false;
+		return this.request(url, _options);
+	}
+	
+	/**
+	 * delete请求
+	 * @param {string} url 请求地址
+	 * @param {RequestConfig} options 请求配置，会覆盖全局配置
+	 * @returns {Promise<any>}
+	 */
+	async delete (url: string, options: RequestConfig = {} as RequestConfig): Promise<any> {
+		let _options = options;
+		_options.method = 'DELETE';
+		this.aborted = false;
+		return this.request(url, _options);
+	}
+	
+	/**
+	 * 中断当前请求
+	 */
+	abort () {
+		this.aborted = true;
+		// if (this.requestTask == null) {
+		// 	throw new KuxFailImpl(901404).error();
+		// }
+		
+		// this.requestTask!.abort();
+	}
+}

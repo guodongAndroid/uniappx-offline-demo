@@ -1,0 +1,51 @@
+import { KuxErrorCode, KuxRequestFail } from './interface';
+
+/**
+ * 错误主题
+ * 注意：错误主题一般为插件名称，每个组件不同，需要使用时请更改。
+ * [可选实现]
+ */
+export const UniErrorSubject = 'kux-request';
+
+/**
+ * 错误信息
+ * @UniError
+ * [可选实现]
+ */
+export const UniErrors : Map<KuxErrorCode, string> = new Map([
+	/**
+	 * 错误码及对应的错误信息
+	 */
+	[901404, '请求任务不存在'],
+	[900408, '请求超时'],
+	[900500, '请求失败']
+]);
+
+/**
+ * 错误对象实现
+ */
+export class KuxFailImpl extends UniError implements KuxRequestFail {
+	// override errCode: KuxErrorCode;
+	
+	/**
+	 * 错误对象构造函数
+	 */
+	constructor(errCode : KuxErrorCode) {
+		super(UniErrorSubject, errCode, UniErrors.get(errCode) ?? "");
+		this.errSubject = UniErrorSubject;
+		this.errCode = errCode;
+		this.errMsg = UniErrors.get(errCode) ?? "";
+	}
+
+	// error (errMsg: string = '', data: any = '', cause: string = ''): UniError {
+	// 	const errorRes = new UniError(this.errSubject, this.errCode, this.errMsg);
+	// 	const sourceError = new SourceError(cause);
+	// 	if (errMsg.length > 0) {
+	// 		errorRes.errMsg = errMsg;
+	// 	}
+	// 	errorRes.data = data;
+	// 	errorRes.cause = sourceError;
+
+	// 	return errorRes;
+	// }
+}

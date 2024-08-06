@@ -1,0 +1,94 @@
+import * as KuxRequest from '../../utssdk/interface';
+
+/**
+ * 工具类
+ * @class
+ * @method objToQueryString 对象转查询字符串
+ */
+export class Utils {
+	/**
+	 * 对象转查询字符串
+	 * @param {UTSJSONObject} queryObj 对象
+	 * @returns {string}
+	 */
+	objToQueryString (queryObj: UTSJSONObject): string {
+		let params: string[] = [];
+		
+		queryObj.toMap().forEach((value, key) => {
+			const encodedKey = encodeURIComponent(key);
+			const encodedValue = encodeURIComponent(`${value}`);
+			
+			params.push(`${encodedKey}=${encodedValue}`);
+		});
+		
+		return `${params.join('&')}`;
+	}
+	
+	/**
+	 * 构建uni标准错误对象
+	 * @param {string} errSubject 错误对象模块名称，如：kux-request
+	 * @param {number} errCode 错误码
+	 * @param {string} errMsg 错误内容
+	 * @param {string} cause 源错误内容
+	 * @returns {UniError} uni 统一错误对象
+	 */
+	buildUniError (errSubject: string, errCode: number, errMsg: string, cause: string = ''): UniError {
+		const error = new UniError(errSubject, errCode, errMsg);
+		const sourceError = new SourceError(cause);
+		error.cause = sourceError;
+		
+		return error;
+	}
+	
+	sleep (ms: number): Promise<any> {
+		return new Promise((resolve) => {
+			let timeout: number = 0;
+			timeout = setTimeout(() => {
+				clearTimeout(timeout);
+				resolve('');
+			}, ms);
+		});
+	}
+	
+	isObject (target: any): boolean {
+		// #ifdef WEB
+		return target instanceof Object;
+		// #endif
+		// #ifdef APP
+		return target instanceof UTSJSONObject;
+		// #endif
+	}
+	
+	deepMerge (target: any, source: any): any {
+		// #ifdef WEB
+		if (!(target instanceof Object) || !(source instanceof Object)) {
+			return source;
+		}
+		// #endif
+		// #ifdef APP
+		if (!(target instanceof UTSJSONObject) || !(source instanceof UTSJSONObject)) {
+			return source;
+		}
+		// #endif
+				
+		for (const key in source) {
+			if (source[key] != null) {
+				if (this.isObject(source[key]!) && target[key] != null) {
+					if (this.isObject(target[key]!) && this.isObject(source[key]!)) {
+						this.deepMerge(target[key]!, source[key]!);
+					} else {
+						target[key] = source[key];
+					}
+				} else {
+					target[key] = source[key];
+				}
+			} else {
+				// target[key] = source[key];
+			}
+		}
+		
+		return target;
+	}
+}
+
+export * from './url';

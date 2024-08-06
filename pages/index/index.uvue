@@ -1,0 +1,48 @@
+<template>
+	<view>
+		<image class="logo" src="/static/logo.png"></image>
+		<view class="text-area">
+			<text class="title">{{title}}</text>
+			<text class="title">uni-app x offline for android</text>
+		</view>
+		<video controls="true" show-fullscreen-btn="true" show-center-play-btn="true" show-play-btn="true"
+			show-progress="true"
+			src="https://pan.sunxiaodou.com/api/raw/?path=/%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0/Spring/07-Spring-Bean%E7%9A%84%E5%90%8E%E7%BD%AE%E5%A4%84%E7%90%86%E5%99%A8.mp4"></video>
+	</view>
+</template>
+
+<script>
+	import { useRequest, UseOptions } from '@/uni_modules/kux-request';
+	const http = useRequest({
+		baseURL: 'http://example.com/api',
+		responseType: 'json'
+	} as UseOptions);
+
+	export default {
+		data() {
+			return {
+				title: 'Hello'
+			}
+		},
+		onLoad() {
+
+		},
+		methods: {
+
+		}
+	}
+</script>
+
+<style>
+	.logo {
+		height: 100px;
+		width: 100px;
+		margin: 100px auto 25px auto;
+	}
+
+	.title {
+		font-size: 18px;
+		color: #8f8f94;
+		text-align: center;
+	}
+</style>

@@ -1,0 +1,47 @@
+import { FilterOptions, PendingRequests, RequestConfig } from "../utssdk/interface.uts";
+// import * as KuxRequest from '../utssdk/interface';
+
+export class RequestFilters {
+	private pendingRequests: PendingRequests;
+	private debug: boolean;
+	
+	constructor (options: FilterOptions = {} as FilterOptions) {
+		this.pendingRequests = new Map<string, Promise<any>>();
+		this.debug = false;
+		if (options.debug !== null) {
+			this.debug = options.debug ?? false;
+		}
+	}
+	
+	private getKey (url: string, options: RequestConfig): string {
+		const paramsString = JSON.stringify(options);
+		return `${url}-${paramsString}`;
+	}
+	
+	async filterRequest (url: string, options: RequestConfig, request: () => Promise<any>): Promise<any> {
+		const key = this.getKey(url, options);
+		
+		if (options.debug !== null) {
+			this.debug = options.debug ?? false;
+		}
+		if (this.pendingRequests.has(key)) {
+			if (this.debug) {
+				console.warn(`【 kux-request:filterRequest】请求key ${key} 已存在，本次请求已自动过滤`);
+			}
+			return this.pendingRequests.get(key);
+		}
+		
+		const promise = request();
+		this.pendingRequests.set(key, promise);
+		// this.updateState();
+		
+		try {
+			const result = await promise;
+			// this.pendingRequests.delete(key);
+			return result;
+		} catch (err) {
+			this.pendingRequests.delete(key);
+			throw err;
+		}
+	}
+}

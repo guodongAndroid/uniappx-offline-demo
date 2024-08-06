@@ -1,0 +1,631 @@
+export type UseOptions = {
+	/**
+	 * 开发者服务器域名
+	 */
+	baseURL: string;
+	/**
+	 * 请求的query参数，即最后拼接在地址栏后面的参数，如：`/user/info?id=1`
+	 * @defaultValue null
+	 */
+	query?: UTSJSONObject | null,
+	/**
+	 * 请求的参数 UTSJSONObject|string类型
+	 * @type {RequestDataOptions}
+	 * @defaultValue null
+	 */
+	data?: any | null,
+	/**
+	 * 设置请求的 header，header 中不能设置 Referer
+	 * @defaultValue null
+	 */
+	header?: UTSJSONObject | null,
+	/**
+	 * 超时时间，单位 ms
+	 * @defaultValue 60000
+	 */
+	timeout?: number | null;
+	/**
+	 * 如果设为 json，会对返回的数据进行一次 JSON.parse，非 json 不会进行 JSON.parse
+	 * @defaultValue "json"
+	 * @deprecated 不支持
+	 * @autodoc false
+	 */
+	dataType?: string | null;
+	/**
+	 * 设置响应的数据类型。
+	 * 
+	 * @deprecated 不支持
+	 * @autodoc false
+	 */
+	responseType?: string | null;
+	/**
+	 * 验证 ssl 证书
+	 * 
+	 * @deprecated 不支持
+	 * @autodoc false
+	 */
+	sslVerify?: boolean | null,
+	/**
+	 * 跨域请求时是否携带凭证（cookies）
+	 * 
+	 * @uniPlatform {
+	 *    "app": {
+	 *        "android": {
+	 *            "osVer": "4.4",
+	 *  		  	 "uniVer": "√",
+	 * 			 "unixVer": "x"
+	 *        },
+	 *        "ios": {
+	 *            "osVer": "9.0",
+	 *  		  	 "uniVer": "√",
+	 * 			 "unixVer": "x"
+	 *        }
+	 *    }
+	 * }
+	 * 
+	 */
+	withCredentials?: boolean | null,
+	/**
+	 * DNS解析时优先使用ipv4
+	 * @defaultValue false
+	 */
+	firstIpv4?: boolean | null,
+	/**
+	 * 过滤重复请求
+	 * @defaultValue false
+	 */
+	filterRequest?: boolean | null,
+	/**
+	 * 开启 debug 模式
+	 * @defaultValue false
+	 */
+	debug?: boolean | null,
+	/**
+	 * 响应自定义成功状态码
+	 * @description 只有响应的自定义成功状态码匹配时才会返回响应结果
+	 */
+	xhrCode?: any | null,
+	/**
+	 * 响应自定义状态码字段名
+	 * @description 成功响应的自定义状态码名称，比如 code, statusCode等
+	 */
+	xhrCodeName?: string | null,
+	/**
+	 * 响应自定义描述内容字段名
+	 * @description 成功响应的自定义描述内容字段名，比如 msg, message 等
+	 * + 在定义了 `xhrCode` 和 `xhrCodeName` 时，该参数有效，当自定义成功状态码不匹配时作为catch返回的描述语
+	 */
+	xhrMessageName?: string | null,
+	/**
+	 * 开启请求缓存
+	 */
+	openCache?: boolean | null,
+	/**
+	 * 最大缓存数量
+	 * @description 开启请求缓存时有效
+	 */
+	maxCacheSize?: number | null
+	/**
+	 * 是否直接返回原始响应内容
+	 * + `v1.0.8` 及以上版本支持
+	 */
+	xhrResponse?: boolean
+};
+
+/**
+ * 请求配置
+ */
+export type RequestConfig = {
+	/**
+	 * 开发者服务器域名
+	 */
+	baseURL?: string,
+	/**
+	 * 开发者服务器接口地址
+	 */
+	url?: string,
+	/**
+	 * 请求的query参数，即最后拼接在地址栏后面的参数，如：`/user/info?id=1`
+	 * @defaultValue null
+	 */
+	query?: UTSJSONObject | null,
+	/**
+	 * 请求的参数 UTSJSONObject|string类型
+	 * @type {RequestDataOptions}
+	 * @defaultValue null
+	 */
+	data?: any | null,
+	/**
+	 * 设置请求的 header，header 中不能设置 Referer
+	 * @defaultValue null
+	 */
+	header?: UTSJSONObject | null,
+	/**
+	 * 请求方法
+	 * 如果设置的值不在取值范围内，会以GET方法进行请求。
+	 * @type {RequestMethod}
+	 * @defaultValue "GET"
+	 */
+	method?: RequestMethod | null;
+	/**
+	 * 超时时间，单位 ms
+	 * @defaultValue 60000
+	 */
+	timeout?: number | null;
+	/**
+	 * 如果设为 json，会对返回的数据进行一次 JSON.parse，非 json 不会进行 JSON.parse
+	 * @defaultValue "json"
+	 * @deprecated 不支持
+	 * @autodoc false
+	 */
+	dataType?: string | null;
+	/**
+	 * 设置响应的数据类型。
+	 * 
+	 * @deprecated 不支持
+	 * @autodoc false
+	 */
+	responseType?: string | null;
+	/**
+	 * 验证 ssl 证书
+	 * 
+	 * @deprecated 不支持
+	 * @autodoc false
+	 */
+	sslVerify?: boolean | null,
+	/**
+	 * 跨域请求时是否携带凭证（cookies）
+	 * 
+	 * @uniPlatform {
+	 *    "app": {
+	 *        "android": {
+	 *            "osVer": "4.4",
+	 *  		  	 "uniVer": "√",
+	 * 			 "unixVer": "x"
+	 *        },
+	 *        "ios": {
+	 *            "osVer": "9.0",
+	 *  		  	 "uniVer": "√",
+	 * 			 "unixVer": "x"
+	 *        }
+	 *    }
+	 * }
+	 * 
+	 */
+	withCredentials?: boolean | null,
+	/**
+	 * DNS解析时优先使用ipv4
+	 * @defaultValue false
+	 */
+	firstIpv4?: boolean | null,
+	/**
+	 * 过滤重复请求
+	 * @defaultValue false
+	 */
+	filterRequest?: boolean | null,
+	/**
+	 * 开启 debug 模式
+	 * @defaultValue false
+	 */
+	debug?: boolean | null,
+	/**
+	 * 接口自定义成功状态码
+	 * @description 只有响应的自定义成功状态码匹配时才会返回响应结果
+	 */
+	xhrCode?: any | null,
+	/**
+	 * 接口自定义状态码字段名
+	 * @description 成功响应的自定义状态码名称，比如 code, statusCode等
+	 */
+	xhrCodeName?: string | null,
+	/**
+	 * 响应自定义描述内容字段名
+	 * @description 成功响应的自定义描述内容字段名，比如 msg, message 等
+	 * + 在定义了 `xhrCode` 和 `xhrCodeName` 时，该参数有效，当自定义成功状态码不匹配时作为catch返回的描述语
+	 */
+	xhrMessageName?: string | null,
+	/**
+	 * 开启请求缓存
+	 */
+	openCache?: boolean | null,
+	/**
+	 * 最大缓存数量
+	 * @description 开启请求缓存时有效
+	 * @defaultValue 10
+	 */
+	maxCacheSize?: number | null
+	/**
+	 * 是否直接返回原始响应内容
+	 * + `v1.0.8` 及以上版本支持
+	 */
+	xhrResponse?: boolean
+	/**
+	 * 自定义参数
+	 * + `v1.0.15` 及以上版本支持
+	 */
+	customData?: any
+	/**
+	 * 是否需要请求拦截，设置为 `false` 时，将不再加入全局拦截器拦截。
+	 * + `v1.0.16` 及以上版本支持
+	 */
+	needRequestInterceptor?: boolean
+	/**
+	 * 是否需要响应拦截，设置为 `false` 时，将不再加入全局响应拦截。
+	 * + `v1.0.16` 及以上版本支持
+	 */
+	needResponseInterceptor?: boolean
+};
+
+export type RequestInterceptor = (options: RequestConfig) => RequestConfig;
+export type RequestInterceptorSync = (options: RequestConfig) => Promise<RequestConfig>;
+export type ResponseInterceptor = (response: any) => any;
+export type ResponseInterceptorSync = (response: any) => Promise<any>;
+export type ResponseXhrInterceptor = (response: RequestSuccess<any>) => any;
+
+/**
+ * `onFail` 回调参数类型
+ * + `v1.0.10` 及以上版本支持。
+ */
+export type RequestFailCallback = (fail: RequestFail) => void;
+
+export type Interceptors = {
+	request: RequestInterceptor[],
+	response: ResponseInterceptor[],
+	/**
+	 * 原始响应拦截
+	 * + `v1.0.11` 及以上版本支持
+	 */
+	responseXhr: ResponseXhrInterceptor[],
+	requestSync?: RequestInterceptorSync | null,
+	responseSync?: ResponseInterceptorSync | null
+}
+
+export type FilterOptions = {
+	debug?: boolean;
+};
+
+export type PendingRequests = Map<string, Promise<any>>;
+
+/**
+ * useRetry 初始化配置
+ */
+export type UseRetryOptions = {
+	/**
+	 * 最大重试次数
+	 */
+	maxRetryCount?: number | null;
+	/**
+	 * 初始重试等待时间
+	 */
+	initialDelay?: number | null;
+	/**
+	 * 最大重试等待时间
+	 */
+	maxDelay?: number | null;
+};
+
+/**
+ * 错误码
+ * 根据uni错误码规范要求，建议错误码以90开头，以下是错误码示例：
+ * - 9010001 错误信息1
+ * - 9010002 错误信息2
+ */
+export type KuxErrorCode = 901404 | 900408 | 900500;
+
+// export interface KuxRequestFail extends IUniError {
+// 	errCode: number;
+// }
+
+/**
+ * 错误抛出统一接口定义
+ */
+export interface KuxRequestFail extends IUniError {
+	/**
+	 * 统一错误码
+	 */
+	errCode: KuxErrorCode;
+	// /**
+	//  * 统一错误信息
+	//  */
+	// errMsg: string;
+	// /**
+	//  * 统一错误主题（模块）名称
+	//  */
+	// errSubject: string;
+	// /**
+	//  * 错误信息中包含的数据
+	//  */
+	// data: any | null;
+	// /**
+	//  * 源错误信息，可以包含多个错误，详见SourceError
+	//  */
+	// cause: Error | null;
+}
+
+// export type Interceptor = {
+// 	request?: (options: RequestOptions<any>) => RequestOptions<any>;
+// 	response?: (response:  any) => any;
+// };
+/**
+ * Request实例
+ */
+export interface IRequest {
+	// constructor (config: UseOptions);
+	
+	getKey (url: string, options: RequestConfig): string;
+	
+	/**
+	 * 清除指定key的请求缓存
+	 * @description 请求指定key的请求缓存，如果key为空则清空当前请求实例所有的请求缓存
+	 * @returns {Request}
+	 */
+	clearCache (key: string): IRequest;
+	
+	/**
+	 * 获取指定key的请求缓存结果
+	 * @description 获取指定key的请求缓存结果
+	 * + key默认为 `url`-`options`
+	 * @returns {Request}
+	 */
+	cache (key: string): IRequest;
+	
+	/**
+	 * 复写全局配置
+	 * @description 复写当前实例的全局配置，比如data，query，header参数
+	 * @param {RequestConfig} config 配置项
+	 * @returns {Request}
+	 */
+	overrideConfig (config: RequestConfig): IRequest;
+	
+	/**
+	 * request请求
+	 * @param {string} url 请求地址
+	 * @param {RequestConfig} options 请求配置，会覆盖全局配置
+	 * @returns {Promise<any>}
+	 */
+	request (url: string, options: RequestConfig): Promise<any>;
+	
+	/**
+	 * get请求
+	 * @param {string} url 请求地址
+	 * @param {RequestConfig} options 请求配置，会覆盖全局配置
+	 * @returns {Promise<any>}
+	 */
+	get (url: string, options: RequestConfig): Promise<any>;
+	
+	/**
+	 * post请求
+	 * @param {string} url 请求地址
+	 * @param {RequestConfig} options 请求配置，会覆盖全局配置
+	 * @returns {Promise<any>}
+	 */
+	post (url: string, options: RequestConfig): Promise<any>;
+	
+	/**
+	 * put请求
+	 * @param {string} url 请求地址
+	 * @param {RequestConfig} options 请求配置，会覆盖全局配置
+	 * @returns {Promise<any>}
+	 */
+	put (url: string, options: RequestConfig): Promise<any>;
+	
+	/**
+	 * delete请求
+	 * @param {string} url 请求地址
+	 * @param {RequestConfig} options 请求配置，会覆盖全局配置
+	 * @returns {Promise<any>}
+	 */
+	delete (url: string, options: RequestConfig): Promise<any>;
+	
+	/**
+	 * 中断当前请求
+	 */
+	abort (): void;
+}
+
+/**
+ * 创建请求实例
+ * @param {UseOptions} options 实例参数
+ * @returns {Request} 返回请求实例对象
+ */
+// export declare function useRequest (options: UseOptions): IRequest;
+
+
+/**
+ * 拦截器实例
+ */
+export interface IInterceptorManager {
+	// constructor ();
+	
+	/**
+	 * 请求拦截
+	 * @param {RequestInterceptor} 拦截器回调
+	 */
+	useRequest(interceptor: RequestInterceptor): IInterceptorManager;
+	
+	/**
+	 * 同步请求拦截
+	 * @param {RequestInterceptorSync} 拦截器回调
+	 */
+	useRequestSync(interceptor: RequestInterceptorSync): IInterceptorManager;
+	
+	/**
+	 * 响应拦截
+	 * @param {ResponseInterceptor} 拦截器回调
+	 */
+	useResponse(interceptor: ResponseInterceptor): IInterceptorManager;
+	
+	/**
+	 * 原始响应拦截
+	 * + `v1.0.11` 及以上版本支持。
+	 * @param {ResponseXhrInterceptor} 拦截器回调
+	 */
+	useResponseXhr(interceptor: ResponseXhrInterceptor): IInterceptorManager;
+}
+
+/**
+ * 创建拦截器实例
+ * @returns {InterceptorManager} 返回拦截器实例对象
+ */
+// export declare function useInterceptor ():  IInterceptorManager;
+
+/**
+ * 过滤器实例
+ */
+export interface IRequestFilters {
+	// constructor (options?: FilterOptions);
+	
+	/**
+	 * 请求过滤器
+	 */
+	filterRequest(url: string, options: RequestConfig, request: () => Promise<any>): Promise<any>;
+}
+
+/**
+ * 创建过滤器实例
+ * @returns {RequestFilters} 返回过滤器实例对象
+ */
+// export declare function useFilter(options?: FilterOptions): IRequestFilters;
+
+/**
+ * URL搜索参数实例
+ */
+export interface IURLSearchParams {
+	// constructor (search: string);
+	
+	get(key: string): string | null;
+}
+
+/**
+ * URL实例
+ */
+export interface IURL {
+	/**
+	 * 请求协议，即 http 或 https
+	 */
+	protocol: string;
+	/**
+	 * 请求域名
+	 */
+	host: string;
+	/**
+	 * 接口地址，如：/user/info
+	 */
+	pathname: string;
+	/**
+	 * 地址栏参数字符串，如：?id=1&name=bob
+	 */
+	search: string;
+	/**
+	 * 地址栏参数集合，如：{id: 1, name: bob}
+	 */
+	searchParams: IURLSearchParams;
+	
+	// constructor (url: string);
+	
+	/**
+	 * 获取完整的请求地址，如：https://test.api.fdproxy.cn/user/info?id=1&name=bob
+	 */
+	href (): string;
+}
+
+/**
+ * 创建URL实例
+ * @returns {URL} 返回URL实例对象
+ */
+// export declare function useURL (url: string): IURL;
+
+/**
+ * 工具类实例
+ */
+export interface IUtils {
+	/**
+	 * 对象转查询字符串
+	 * @param {UTSJSONObject} queryObj 对象
+	 * @returns {string}
+	 */
+	objToQueryString(queryObj: UTSJSONObject): string;
+	
+	/**
+	 * 构建uni标准错误对象
+	 * @param {string} errSubject 错误对象模块名称，如：kux-request
+	 * @param {number} errCode 错误码
+	 * @param {string} errMsg 错误内容
+	 * @param {string} cause 源错误内容
+	 * @returns {UniError} uni 统一错误对象
+	 */
+	// buildUniError(errSubject: string, errCode: number, errMsg: string, cause?: string): UniError;
+	
+	/**
+	 * 程序暂停几秒。
+	 * @param {number} ms 暂停的毫秒数
+	 */
+	sleep(ms: number): Promise<any>;
+	
+	/**
+	 * 两个对象深度合并
+	 * @param {any} 目标对象
+	 * @param {any} 源对象
+	 */
+	deepMerge(target: any, source: any): any;
+}
+
+/**
+ * 创建工具实例
+ * @returns {Utils} 返回工具类实例对象
+ */
+// export declare function  useUtils () : IUtils;
+
+/**
+ * 重试实例
+ */
+export interface IRetryManager {
+	// constructor (maxRetryCount: number, initialDelay: number, maxDelay: number);
+	
+	/**
+	 * 发送请求
+	 * @param {string} url 完整的请求URL
+	 * @param {RequestConfig} options 请求配置
+	 */
+	sendRequest(url: string, options?: RequestConfig): Promise<any>;
+}
+
+/**
+ * 创建请求重试实例
+ * @param {number} maxRetryCount 最大重试次数。指定在请求失败时最多尝试多少次重试。如果请求一直失败，最多只会尝试 `maxRetryCount` 次重试。
+ * @param {number} initialDelay 初始重试等待时间。指定在第一次请求失败后，等待多长时间后再尝试重试。单位是毫秒。
+ * @param {number} maxDelay 最大重试等待时间。指定在重试过程中，等待时间最多不超过多少毫秒。这个参数可以防止等待时间过长。
+ * @returns {RetryManager} 返回请求重试实例对象
+ */
+// export declare function useRetry (maxRetryCount: number, initialDelay: number, maxDelay: number) : IRetryManager;
+
+/**
+ * 批量请求实例
+ */
+export interface IBatchRequestManager {
+	/**
+	 * 逐个添加请求队列。
+	 * @param {Promise<any>} request 请求队列
+	 * @returns {Promise<any>} 请求队列Promise对象
+	 */
+	addRequest(request: Promise<any>): Promise<any>;
+	
+	/**
+	 * 批量添加请求队列。
+	 * @param {Promise<any>[]} requests 请求队列
+	 * @returns {Promise<any>[]} 请求队列Promise对象集合
+	 */
+	addBatchRequest(requests: Promise<any>[]): Promise<any>[];
+	
+	/**
+	 * 执行批量请求。
+	 * @returns {Promise<any>[]} 请求队列Promise对象集合
+	 */
+	executeBatch(): Promise<any[]>;
+}
+
+/**
+ * 创建和管理 批量请求 实例。
+ * @returns {BatchRequestManager} 返回批量请求实例对象
+ */
+// export declare function useBatchRequest () : IBatchRequestManager;

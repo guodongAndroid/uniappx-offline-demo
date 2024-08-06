@@ -1,0 +1,21 @@
+import * as KuxRequest from '../utssdk/interface';
+
+export class BatchRequestManager {
+	private requests: Promise<any>[] = [];
+	
+	addRequest(request: Promise<any>): Promise<any> {
+		this.requests.push(request);
+		return request;
+	}
+	
+	addBatchRequest(requests: Promise<any>[]): Promise<any>[] {
+		this.requests = requests;
+		return this.requests;
+	}
+	
+	async executeBatch(): Promise<any[]> {
+		const results = await Promise.all(this.requests);
+		this.requests = [];
+		return results;
+	}
+};
