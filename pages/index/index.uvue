@@ -6,8 +6,7 @@
 			<text class="title">uni-app x offline for android</text>
 		</view>
 		<video controls="true" show-fullscreen-btn="true" show-center-play-btn="true" show-play-btn="true"
-			show-progress="true"
-			src="https://pan.sunxiaodou.com/api/raw/?path=/%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0/Spring/07-Spring-Bean%E7%9A%84%E5%90%8E%E7%BD%AE%E5%A4%84%E7%90%86%E5%99%A8.mp4"></video>
+			show-progress="true" src="https://qiniu-web-assets.dcloud.net.cn/video/sample/2minute-demo.mp4"></video>
 	</view>
 </template>
 
