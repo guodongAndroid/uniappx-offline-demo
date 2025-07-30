@@ -1,4 +1,4 @@
-import * as KuxRequest from '../utssdk/interface';
+import { ExecuteBatchRequestResult } from '../utssdk/interface';
 
 export class BatchRequestManager {
 	private requests: Promise<any>[] = [];
@@ -13,9 +13,49 @@ export class BatchRequestManager {
 		return this.requests;
 	}
 	
-	async executeBatch(): Promise<any[]> {
-		const results = await Promise.all(this.requests);
+	async executeBatch(): Promise<ExecuteBatchRequestResult[]> {
+		// const results = await Promise.all(this.requests);
+		// this.requests = [];
+		// return results;
+		const settedResutls = await Promise.allSettled(this.requests)
 		this.requests = [];
-		return results;
+		
+		return settedResutls.map((result): ExecuteBatchRequestResult => {
+			if (result.status == 'fulfilled') {
+				// #ifndef APP-ANDROID
+				// #ifndef APP-HARMONY
+				return { value: result['value'], error: null }
+				// #endif
+				// #ifdef APP-HARMONY
+				return { value: result.value, error: null }
+				// #endif
+				// #endif
+				// #ifdef APP-ANDROID
+				let res = {} as ExecuteBatchRequestResult
+				if (result instanceof PromiseFulfilledResult) {
+					return { value: result.value, error: null } as ExecuteBatchRequestResult
+				}
+				if (result instanceof PromiseRejectedResult) {
+					return { value: null, error: result.reason } as ExecuteBatchRequestResult
+				}
+				return res
+				// #endif
+			} else {
+				// #ifndef APP-ANDROID
+				// #ifndef APP-HARMONY
+				return { value: null, error: result['reason'] } as ExecuteBatchRequestResult
+				// #endif
+				// #ifdef APP-HARMONY
+				return { value: null, error: result.reason } as ExecuteBatchRequestResult
+				// #endif
+				// #endif
+				// #ifdef APP-ANDROID
+				if (result instanceof PromiseRejectedResult) {
+					return { value: null, error: result.reason } as ExecuteBatchRequestResult
+				}
+				return { value: null, error: result } as ExecuteBatchRequestResult
+				// #endif
+			}
+		});
 	}
 };

@@ -1,3 +1,4 @@
+// #ifndef APP-HARMONY
 export type UseOptions = {
 	/**
 	 * 开发者服务器域名
@@ -111,10 +112,127 @@ export type UseOptions = {
 	 */
 	xhrResponse?: boolean
 };
+// #endif
+// #ifdef APP-HARMONY
+export interface UseOptions {
+	/**
+	 * 开发者服务器域名
+	 */
+	baseURL: string;
+	/**
+	 * 请求的query参数，即最后拼接在地址栏后面的参数，如：`/user/info?id=1`
+	 * @defaultValue null
+	 */
+	query?: UTSJSONObject | null,
+	/**
+	 * 请求的参数 UTSJSONObject|string类型
+	 * @type {RequestDataOptions}
+	 * @defaultValue null
+	 */
+	data?: any | null,
+	/**
+	 * 设置请求的 header，header 中不能设置 Referer
+	 * @defaultValue null
+	 */
+	header?: UTSJSONObject | null,
+	/**
+	 * 超时时间，单位 ms
+	 * @defaultValue 60000
+	 */
+	timeout?: number | null;
+	/**
+	 * 如果设为 json，会对返回的数据进行一次 JSON.parse，非 json 不会进行 JSON.parse
+	 * @defaultValue "json"
+	 * @deprecated 不支持
+	 * @autodoc false
+	 */
+	dataType?: string | null;
+	/**
+	 * 设置响应的数据类型。
+	 * 
+	 * @deprecated 不支持
+	 * @autodoc false
+	 */
+	responseType?: string | null;
+	/**
+	 * 验证 ssl 证书
+	 * 
+	 * @deprecated 不支持
+	 * @autodoc false
+	 */
+	sslVerify?: boolean | null,
+	/**
+	 * 跨域请求时是否携带凭证（cookies）
+	 * 
+	 * @uniPlatform {
+	 *    "app": {
+	 *        "android": {
+	 *            "osVer": "4.4",
+	 *  		  	 "uniVer": "√",
+	 * 			 "unixVer": "x"
+	 *        },
+	 *        "ios": {
+	 *            "osVer": "9.0",
+	 *  		  	 "uniVer": "√",
+	 * 			 "unixVer": "x"
+	 *        }
+	 *    }
+	 * }
+	 * 
+	 */
+	withCredentials?: boolean | null,
+	/**
+	 * DNS解析时优先使用ipv4
+	 * @defaultValue false
+	 */
+	firstIpv4?: boolean | null,
+	/**
+	 * 过滤重复请求
+	 * @defaultValue false
+	 */
+	filterRequest?: boolean | null,
+	/**
+	 * 开启 debug 模式
+	 * @defaultValue false
+	 */
+	debug?: boolean | null,
+	/**
+	 * 响应自定义成功状态码
+	 * @description 只有响应的自定义成功状态码匹配时才会返回响应结果
+	 */
+	xhrCode?: any | null,
+	/**
+	 * 响应自定义状态码字段名
+	 * @description 成功响应的自定义状态码名称，比如 code, statusCode等
+	 */
+	xhrCodeName?: string | null,
+	/**
+	 * 响应自定义描述内容字段名
+	 * @description 成功响应的自定义描述内容字段名，比如 msg, message 等
+	 * + 在定义了 `xhrCode` 和 `xhrCodeName` 时，该参数有效，当自定义成功状态码不匹配时作为catch返回的描述语
+	 */
+	xhrMessageName?: string | null,
+	/**
+	 * 开启请求缓存
+	 */
+	openCache?: boolean | null,
+	/**
+	 * 最大缓存数量
+	 * @description 开启请求缓存时有效
+	 */
+	maxCacheSize?: number | null
+	/**
+	 * 是否直接返回原始响应内容
+	 * + `v1.0.8` 及以上版本支持
+	 */
+	xhrResponse?: boolean
+};
+// #endif
 
 /**
  * 请求配置
  */
+// #ifndef APP-HARMONY
 export type RequestConfig = {
 	/**
 	 * 开发者服务器域名
@@ -255,12 +373,159 @@ export type RequestConfig = {
 	 */
 	needResponseInterceptor?: boolean
 };
+// #endif
+// #ifdef APP-HARMONY
+export interface RequestConfig {
+	/**
+	 * 开发者服务器域名
+	 */
+	baseURL?: string,
+	/**
+	 * 开发者服务器接口地址
+	 */
+	url?: string,
+	/**
+	 * 请求的query参数，即最后拼接在地址栏后面的参数，如：`/user/info?id=1`
+	 * @defaultValue null
+	 */
+	query?: UTSJSONObject | null,
+	/**
+	 * 请求的参数 UTSJSONObject|string类型
+	 * @type {RequestDataOptions}
+	 * @defaultValue null
+	 */
+	data?: any | null,
+	/**
+	 * 设置请求的 header，header 中不能设置 Referer
+	 * @defaultValue null
+	 */
+	header?: UTSJSONObject | null,
+	/**
+	 * 请求方法
+	 * 如果设置的值不在取值范围内，会以GET方法进行请求。
+	 * @type {RequestMethod}
+	 * @defaultValue "GET"
+	 */
+	method?: RequestMethod | null;
+	/**
+	 * 超时时间，单位 ms
+	 * @defaultValue 60000
+	 */
+	timeout?: number | null;
+	/**
+	 * 如果设为 json，会对返回的数据进行一次 JSON.parse，非 json 不会进行 JSON.parse
+	 * @defaultValue "json"
+	 * @deprecated 不支持
+	 * @autodoc false
+	 */
+	dataType?: string | null;
+	/**
+	 * 设置响应的数据类型。
+	 * 
+	 * @deprecated 不支持
+	 * @autodoc false
+	 */
+	responseType?: string | null;
+	/**
+	 * 验证 ssl 证书
+	 * 
+	 * @deprecated 不支持
+	 * @autodoc false
+	 */
+	sslVerify?: boolean | null,
+	/**
+	 * 跨域请求时是否携带凭证（cookies）
+	 * 
+	 * @uniPlatform {
+	 *    "app": {
+	 *        "android": {
+	 *            "osVer": "4.4",
+	 *  		  	 "uniVer": "√",
+	 * 			 "unixVer": "x"
+	 *        },
+	 *        "ios": {
+	 *            "osVer": "9.0",
+	 *  		  	 "uniVer": "√",
+	 * 			 "unixVer": "x"
+	 *        }
+	 *    }
+	 * }
+	 * 
+	 */
+	withCredentials?: boolean | null,
+	/**
+	 * DNS解析时优先使用ipv4
+	 * @defaultValue false
+	 */
+	firstIpv4?: boolean | null,
+	/**
+	 * 过滤重复请求
+	 * @defaultValue false
+	 */
+	filterRequest?: boolean | null,
+	/**
+	 * 开启 debug 模式
+	 * @defaultValue false
+	 */
+	debug?: boolean | null,
+	/**
+	 * 接口自定义成功状态码
+	 * @description 只有响应的自定义成功状态码匹配时才会返回响应结果
+	 */
+	xhrCode?: any | null,
+	/**
+	 * 接口自定义状态码字段名
+	 * @description 成功响应的自定义状态码名称，比如 code, statusCode等
+	 */
+	xhrCodeName?: string | null,
+	/**
+	 * 响应自定义描述内容字段名
+	 * @description 成功响应的自定义描述内容字段名，比如 msg, message 等
+	 * + 在定义了 `xhrCode` 和 `xhrCodeName` 时，该参数有效，当自定义成功状态码不匹配时作为catch返回的描述语
+	 */
+	xhrMessageName?: string | null,
+	/**
+	 * 开启请求缓存
+	 */
+	openCache?: boolean | null,
+	/**
+	 * 最大缓存数量
+	 * @description 开启请求缓存时有效
+	 * @defaultValue 10
+	 */
+	maxCacheSize?: number | null
+	/**
+	 * 是否直接返回原始响应内容
+	 * + `v1.0.8` 及以上版本支持
+	 */
+	xhrResponse?: boolean
+	/**
+	 * 自定义参数
+	 * + `v1.0.15` 及以上版本支持
+	 */
+	customData?: any
+	/**
+	 * 是否需要请求拦截，设置为 `false` 时，将不再加入全局拦截器拦截。
+	 * + `v1.0.16` 及以上版本支持
+	 */
+	needRequestInterceptor?: boolean
+	/**
+	 * 是否需要响应拦截，设置为 `false` 时，将不再加入全局响应拦截。
+	 * + `v1.0.16` 及以上版本支持
+	 */
+	needResponseInterceptor?: boolean
+};
+// #endif
 
 export type RequestInterceptor = (options: RequestConfig) => RequestConfig;
 export type RequestInterceptorSync = (options: RequestConfig) => Promise<RequestConfig>;
+export type RequestRejectInterceptor = (options: RequestConfig, reject: (reason: any) => void) => RequestConfig;
+export type RequestRejectInterceptorSync = (options: RequestConfig, reject: (reason: any) => void) => Promise<RequestConfig>;
 export type ResponseInterceptor = (response: any) => any;
 export type ResponseInterceptorSync = (response: any) => Promise<any>;
 export type ResponseXhrInterceptor = (response: RequestSuccess<any>) => any;
+export type ResponseRejectInterceptor = (response: RequestSuccess<any>, reject: (reason: any) => void) => any;
+export type ResponseFailInterceptor = (fail: RequestFail, reject: (reason: any) => void) => void;
 
 /**
  * `onFail` 回调参数类型
@@ -268,27 +533,84 @@ export type ResponseXhrInterceptor = (response: RequestSuccess<any>) => any;
  */
 export type RequestFailCallback = (fail: RequestFail) => void;
 
+// #ifndef APP-HARMONY
 export type Interceptors = {
 	request: RequestInterceptor[],
+	/**
+	 * 请求拒绝拦截
+	 * + `v1.0.25` 及以上版本支持
+	 */
+	requestReject: RequestRejectInterceptor[],
 	response: ResponseInterceptor[],
 	/**
 	 * 原始响应拦截
 	 * + `v1.0.11` 及以上版本支持
 	 */
 	responseXhr: ResponseXhrInterceptor[],
+	/**
+	 * 响应拒绝拦截
+	 * + `v1.0.25` 及以上版本支持
+	 */
+	responseReject: ResponseRejectInterceptor[],
 	requestSync?: RequestInterceptorSync | null,
-	responseSync?: ResponseInterceptorSync | null
+	requestRejectSync?: RequestRejectInterceptorSync | null,
+	responseSync?: ResponseInterceptorSync | null,
+	/**
+	 * 响应失败拦截
+	 * + `v1.0.26` 及以上版本支持
+	 */
+	responseFail: ResponseFailInterceptor[],
 }
+// #endif
 
+// #ifdef APP-HARMONY
+export interface Interceptors {
+	request: RequestInterceptor[],
+	/**
+	 * 请求拒绝拦截
+	 * + `v1.0.25` 及以上版本支持
+	 */
+	requestReject: RequestRejectInterceptor[],
+	response: ResponseInterceptor[],
+	/**
+	 * 原始响应拦截
+	 * + `v1.0.11` 及以上版本支持
+	 */
+	responseXhr: ResponseXhrInterceptor[],
+	/**
+	 * 响应拒绝拦截
+	 * + `v1.0.25` 及以上版本支持
+	 */
+	responseReject: ResponseRejectInterceptor[],
+	requestSync?: RequestInterceptorSync | null,
+	requestRejectSync?: RequestRejectInterceptorSync | null,
+	responseSync?: ResponseInterceptorSync | null,
+	/**
+	 * 响应失败拦截
+	 * + `v1.0.26` 及以上版本支持
+	 */
+	responseFail: ResponseFailInterceptor[],
+}
+// #endif
+
+// #ifndef APP-HARMONY
 export type FilterOptions = {
 	debug?: boolean;
 };
+// #endif
+// #ifdef APP-HARMONY
+export interface FilterOptions {
+	debug?: boolean;
+};
+// #endif
+
 
 export type PendingRequests = Map<string, Promise<any>>;
 
 /**
  * useRetry 初始化配置
  */
+// #ifndef APP-HARMONY
 export type UseRetryOptions = {
 	/**
 	 * 最大重试次数
@@ -303,6 +625,23 @@ export type UseRetryOptions = {
 	 */
 	maxDelay?: number | null;
 };
+// #endif
+// #ifdef APP-HARMONY
+export interface UseRetryOptions {
+	/**
+	 * 最大重试次数
+	 */
+	maxRetryCount?: number | null;
+	/**
+	 * 初始重试等待时间
+	 */
+	initialDelay?: number | null;
+	/**
+	 * 最大重试等待时间
+	 */
+	maxDelay?: number | null;
+};
+// #endif
 
 /**
  * 错误码
@@ -316,6 +655,31 @@ export type KuxErrorCode = 901404 | 900408 | 900500;
 // 	errCode: number;
 // }
 
+// #ifndef APP-HARMONY
+export type ExecuteBatchRequestResult = {
+	/**
+	 * 成功的请求结果
+	 */
+	value: any | null
+	/**
+	 * 失败的请求结果
+	 */
+	error: any | null
+}
+// #endif
+// #ifdef APP-HARMONY
+export interface ExecuteBatchRequestResult {
+	/**
+	 * 成功的请求结果
+	 */
+	value: any | null
+	/**
+	 * 失败的请求结果
+	 */
+	error: any | null
+}
+// #endif
+
 /**
  * 错误抛出统一接口定义
  */
@@ -323,7 +687,7 @@ export interface KuxRequestFail extends IUniError {
 	/**
 	 * 统一错误码
 	 */
-	errCode: KuxErrorCode;
+	errCode: number;
 	// /**
 	//  * 统一错误信息
 	//  */

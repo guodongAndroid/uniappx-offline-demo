@@ -1,4 +1,7 @@
 import { Interceptors, PendingRequests } from "../../utssdk/interface.uts";
+// #ifdef APP-HARMONY
+import { reactive } from '../../utssdk/app-harmony/NativeCode.ets';
+// #endif
 
 export type State = {
 	interceptors: Interceptors;
@@ -8,13 +11,21 @@ export type State = {
 export const state = reactive({
 	interceptors: {
 		request: [],
+		requestReject: [],
 		response: [],
 		responseXhr: [],
+		responseReject: [],
 		requestSync: null,
-		responseSync: null
+		requestRejectSync: null,
+		responseSync: null,
+		responseFail: [],
 	},
 	// pendingRequests: new Map<string, Promise<any>>(),
-} as State);
+} as State)
+
+export const getState = (): State => {
+	return state;
+}
 
 export const setInterceptors = (interceptors: Interceptors) => {
 	state.interceptors = interceptors;

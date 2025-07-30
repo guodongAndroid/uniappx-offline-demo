@@ -18,7 +18,11 @@ export class RequestFilters {
 		return `${url}-${paramsString}`;
 	}
 	
-	async filterRequest (url: string, options: RequestConfig, request: () => Promise<any>): Promise<any> {
+	async filterRequest (
+		url: string, 
+		options: RequestConfig, 
+		request: () => Promise<any>
+	): Promise<any> {
 		const key = this.getKey(url, options);
 		
 		if (options.debug !== null) {
@@ -28,7 +32,7 @@ export class RequestFilters {
 			if (this.debug) {
 				console.warn(`【 kux-request:filterRequest】请求key ${key} 已存在，本次请求已自动过滤`);
 			}
-			return this.pendingRequests.get(key);
+			return this.pendingRequests.get(key)!;
 		}
 		
 		const promise = request();
@@ -41,7 +45,15 @@ export class RequestFilters {
 			return result;
 		} catch (err) {
 			this.pendingRequests.delete(key);
+			// #ifndef APP-HARMONY
 			throw err;
+			// #endif
+			// #ifdef APP-HARMONY
+			if (err instanceof Error) {
+				throw err as Error
+			}
+			return err
+			// #endif
 		}
 	}
 }

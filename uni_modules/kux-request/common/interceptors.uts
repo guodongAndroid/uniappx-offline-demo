@@ -1,4 +1,4 @@
-import { Interceptors, RequestInterceptor, RequestInterceptorSync, ResponseInterceptor, ResponseInterceptorSync, ResponseXhrInterceptor } from "../utssdk/interface.uts";
+import { Interceptors, RequestInterceptor, RequestInterceptorSync, ResponseInterceptor, ResponseInterceptorSync, ResponseXhrInterceptor, ResponseRejectInterceptor, RequestRejectInterceptor, RequestRejectInterceptorSync, ResponseFailInterceptor } from "../utssdk/interface.uts";
 // import * as KuxRequest from '../utssdk/interface';
 import { setInterceptors } from './store/index';
 
@@ -8,9 +8,13 @@ export class InterceptorManager {
 	constructor () {
 		this.interceptors = {
 			request: [] as RequestInterceptor[],
+			requestReject: [] as RequestRejectInterceptor[],
 			response: [] as ResponseInterceptor[],
 			responseXhr: [] as ResponseXhrInterceptor[],
+			responseReject: [] as ResponseRejectInterceptor[],
+			responseFail: [] as ResponseFailInterceptor[],
 			requestSync: null,
+			requestRejectSync: null,
 			responseSync: null
 		} as Interceptors;
 	}
@@ -21,8 +25,28 @@ export class InterceptorManager {
 		return this;
 	}
 	
+	/**
+	 * 请求拒绝拦截
+	 * + `v1.0.25` 及以上版本支持
+	 */
+	useRequestReject (interceptor: RequestRejectInterceptor): InterceptorManager {
+		this.interceptors.requestReject.push(interceptor);
+		setInterceptors(this.interceptors);
+		return this;
+	}
+	
 	useRequestSync (interceptor: RequestInterceptorSync): InterceptorManager {
 		this.interceptors.requestSync = interceptor;
+		setInterceptors(this.interceptors);
+		return this;
+	}
+	
+	/**
+	 * 请求拒绝拦截【同步方式】
+	 * + `v1.0.25` 及以上版本支持
+	 */
+	useRequestRejectSync (interceptor: RequestRejectInterceptorSync): InterceptorManager {
+		this.interceptors.requestRejectSync = interceptor;
 		setInterceptors(this.interceptors);
 		return this;
 	}
@@ -39,6 +63,26 @@ export class InterceptorManager {
 	 */
 	useResponseXhr (interceptor: ResponseXhrInterceptor): InterceptorManager {
 		this.interceptors.responseXhr.push(interceptor);
+		setInterceptors(this.interceptors);
+		return this;
+	}
+	
+	/**
+	 * 响应拒绝拦截
+	 * + `v1.0.25` 及以上版本支持
+	 */
+	useResponseReject (interceptor: ResponseRejectInterceptor): InterceptorManager {
+		this.interceptors.responseReject.push(interceptor);
+		setInterceptors(this.interceptors);
+		return this;
+	}
+	
+	/**
+	 * 响应失败拦截
+	 * + `v1.0.26` 及以上版本支持
+	 */
+	useResponseFail (interceptor: ResponseFailInterceptor): InterceptorManager {
+		this.interceptors.responseFail.push(interceptor);
 		setInterceptors(this.interceptors);
 		return this;
 	}

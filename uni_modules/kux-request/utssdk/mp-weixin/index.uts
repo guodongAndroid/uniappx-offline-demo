@@ -1,4 +1,4 @@
 export * from '../../common/index';
 
 // 类型导出
-export * from '../interface'
+export * from '../interface';

@@ -13,13 +13,23 @@ export class Utils {
 	 */
 	objToQueryString (queryObj: UTSJSONObject): string {
 		let params: string[] = [];
-		
+		// #ifndef APP-ANDROID
+		const keys = Object.keys(queryObj)
+		for (let item of keys) {
+			const encodedKey = encodeURIComponent(item)
+			const encodedValue = encodeURIComponent(`${queryObj[item]}`)
+			
+			params.push(`${encodedKey}=${encodedValue}`)
+		}
+		// #endif
+		// #ifdef APP-ANDROID
 		queryObj.toMap().forEach((value, key) => {
 			const encodedKey = encodeURIComponent(key);
 			const encodedValue = encodeURIComponent(`${value}`);
 			
 			params.push(`${encodedKey}=${encodedValue}`);
 		});
+		// #endif
 		
 		return `${params.join('&')}`;
 	}
@@ -35,7 +45,12 @@ export class Utils {
 	buildUniError (errSubject: string, errCode: number, errMsg: string, cause: string = ''): UniError {
 		const error = new UniError(errSubject, errCode, errMsg);
 		const sourceError = new SourceError(cause);
+		// #ifndef APP-HARMONY
 		error.cause = sourceError;
+		// #endif
+		// #ifdef APP-HARMONY
+		error.cause = sourceError as Error;
+		// #endif
 		
 		return error;
 	}
@@ -71,6 +86,7 @@ export class Utils {
 		}
 		// #endif
 				
+		// #ifndef APP-HARMONY
 		for (const key in source) {
 			if (source[key] != null) {
 				if (this.isObject(source[key]!) && target[key] != null) {
@@ -83,12 +99,39 @@ export class Utils {
 					target[key] = source[key];
 				}
 			} else {
-				// target[key] = source[key];
+				target[key] = source[key];
 			}
 		}
+		// #endif
+		// #ifdef APP-HARMONY
+		Object.keys(source).forEach((key) => {
+			if (source[key] != null) {
+				if (this.isObject(source[key]!) && target[key] != null) {
+					if (this.isObject(target[key]!) && this.isObject(source[key]!)) {
+						this.deepMerge(target[key]!, source[key]!);
+					} else {
+						target[key] = source[key];
+					}
+				} else {
+					target[key] = source[key];
+				}
+			} else {
+				target[key] = source[key];
+			}
+		});
+		// #endif
 		
 		return target;
 	}
 }
+
+// #ifdef APP-HARMONY
+export function getDynamicValue(obj: unknown, key: string): any | null {
+  if (typeof obj === 'object' && obj !== null && key in obj) {
+    return (obj as Record<string, unknown>)[key];
+  }
+  return null;
+}
+// #endif
 
 export * from './url';

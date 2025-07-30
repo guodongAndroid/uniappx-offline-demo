@@ -1,6 +1,3 @@
-# kux-request
-`kux-request` 是一个基于 `uni.request` 的一个简洁高效的`uts`请求库，支持请求同步/异步拦截、请求重试、请求过滤等丰富功能，提供人性化的请求配置，旨在帮助`uniapp x`开发者专注业务开发，提升业务开发效率。
-
 ## 插件特色
 + 请求同步拦截
 + 请求过滤
@@ -32,6 +29,7 @@
 				<li><a href="#advanced_batch">批量请求</a></li>
 				<li><a href="#advanced_abort">中断请求</a></li>
 				<li><a href="#advanced_config">请求配置</a></li>
+				<li><a href="#advanced_hooks">hooks封装</a></li>
 				<li><a href="#advanced_unierror">错误码规范</a></li>
 			</ol>
 		</li>
@@ -59,6 +57,7 @@
 				<li><a href="#use_useUtils">useUtils</a></li>
 				<li><a href="#use_useRetry">useRetry</a></li>
 				<li><a href="#use_useBatchRequest">useBatchRequest</a></li>
+
 			</ol>
 		</li>
 		<li><a href="#type">自定义type</a>
@@ -427,6 +426,69 @@ main();
 request().abort();
 ```
 
+<a id="advanced_hooks"></a>
+### hooks封装
+有时候应用需要动态修改全局请求配置,比如 `baseURL` 等内容, 可以封装一个 `useHttp` hooks函数方便动态修改请求配置内容, 参考如下:
+
+```ts
+// utils/http.uts
+import { useRequest, UseOptions, Request } from '@/uni_modules/kux-request';
+
+type UseHttpReturn = {
+	http: Ref<Request>;
+	updateBaseURL: (baseURL: string | null) => void;
+}
+
+export function useHttp () {
+	const baseURL = ref('https://api.uvuejs.cn');
+	// 可以写更多配置内容
+	
+	const http = computed((): Request => {
+		return useRequest({
+			baseURL: baseURL.value
+		} as UseOptions);
+	});
+	
+	const updateBaseURL = (newBaseURL: string | null) => {
+		if (newBaseURL != null) {
+			baseURL.value = newBaseURL;
+		} else {
+			baseURL.value = 'https://api.uvuejs.cn';
+		}
+	}
+	
+	return {
+		http,
+		updateBaseURL
+	} as UseHttpReturn;
+}
+
+```
+
+页面中调用示例如下:
+```
+import { useHttp } from '@/utils/http';
+
+const { http, updateBaseURL } = useHttp();
+
+const test = () => {
+	http.value.get('/version/easy-pack')
+		.then((res) => {
+			console.log(res);
+		})
+		.catch((err) => {
+			console.log(err);
+		})
+}
+
+// 点击修改baseURL	
+const handleClick = (url: string | null) => {
+	updateBaseURL(url);
+};
+	
+test();
+```
+
 <a id="advanced_config"></a>
 ### 请求配置
 请求库的请求配置分为创建请求实例时传的 `默认配置` 和 发起请求时传的 `请求配置`。`请求配置` 会覆盖 `默认配置` 的同名参数值。
@@ -664,27 +726,6 @@ request().abort();
 		console.log(err);
 	})
 	```
-
-#### customData
-+ 描述：自定义参数
-	+ `v1.0.15` 及以上版本支持
-+ 类型：`any`
-+ 默认值：`null`
-+ 是否必填：`否`
-
-#### needRequestInterceptor
-+ 描述：是否需要请求拦截，设置为 `false` 时，将不再加入全局请求拦截器。
-	+ `v1.0.16` 及以上版本支持
-+ 类型：`boolean`
-+ 默认值：`true`
-+ 是否必填：`否`
-
-#### needResponseInterceptor
-+ 描述：是否需要响应拦截，设置为 `false` 时，将不再加入全局响应拦截器。
-	+ `v1.0.16` 及以上版本支持
-+ 类型：`boolean`
-+ 默认值：`true`
-+ 是否必填：`否`
 
 <a id="advanced_unierror"></a>
 ### 错误码规范
@@ -1326,21 +1367,6 @@ export type RequestConfig = {
 	 * + `v1.0.8` 及以上版本支持
 	 */
 	xhrResponse?: boolean
-	/**
-	 * 自定义参数
-	 * + `v1.0.15` 及以上版本支持
-	 */
-	customData?: any | null
-	/**
-	 * 是否需要请求拦截，设置为 `false` 时，将不再加入全局拦截器拦截。
-	 * + `v1.0.16` 及以上版本支持
-	 */
-	needRequestInterceptor?: boolean
-	/**
-	 * 是否需要响应拦截，设置为 `false` 时，将不再加入全局响应拦截。
-	 * + `v1.0.16` 及以上版本支持
-	 */
-	needResponseInterceptor?: boolean
 };
 ```
 
@@ -1759,7 +1785,7 @@ export declare function useBatchRequest () : BatchRequestManager;
 ---
 ### 结语
 #### kux 不生产代码，只做代码的搬运工，致力于提供uts 的 js 生态轮子实现，欢迎各位大佬在插件市场搜索使用 kux 生态插件：[https://ext.dcloud.net.cn/search?q=kux](https://ext.dcloud.net.cn/search?q=kux)
-#### QQ群：870628986 [点击加入](https://qm.qq.com/q/lJOzzu6UEw)
+#### QQ群：755951981 [点击加入](https://qm.qq.com/q/zDTOFBbf1K)
 
 ___
 ### 友情推荐

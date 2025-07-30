@@ -18,7 +18,12 @@ export class URLSearchParams {
 	}
 	
 	get (key: string): string | null {
+		// #ifndef APP-HARMONY
 		return this.params.get(key);
+		// #endif
+		// #ifdef APP-HARMONY
+		return this.params.get(key) as string | null;
+		// #endif
 	}
 }
 

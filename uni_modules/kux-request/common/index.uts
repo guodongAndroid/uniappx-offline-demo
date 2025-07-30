@@ -67,3 +67,4 @@ export const useBatchRequest = (): BatchRequestManager => {
 }
 
 export * from '../utssdk/interface';
+export * from './request'

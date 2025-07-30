@@ -45,7 +45,12 @@ export class RetryManager extends Request {
 					// throw new KuxFailImpl(900500);
 					const fail = new KuxFailImpl(900500);
 					// fail.data = null
+					// #ifndef APP-HARMONY
 					fail.cause = new UniError(JSON.stringify(error));
+					// #endif
+					// #ifdef APP-HARMONY
+					fail.cause = new UniError(JSON.stringify(error)) as Error;
+					// #endif
 					// fail.cause = new UniError(error['errSubject'], error['errCode'], error['errMsg']);
 					throw fail;
 				}

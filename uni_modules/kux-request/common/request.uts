@@ -1,8 +1,14 @@
 import { RequestFilters } from "./filters.uts";
-import { FilterOptions, RequestConfig, RequestInterceptor, RequestInterceptorSync, ResponseInterceptor, ResponseXhrInterceptor, UseOptions, UseRetryOptions, RequestFailCallback } from "../utssdk/interface";
+import { FilterOptions, RequestConfig, RequestInterceptor, RequestInterceptorSync, ResponseInterceptor, ResponseXhrInterceptor, UseOptions, UseRetryOptions, RequestFailCallback, ResponseRejectInterceptor, RequestRejectInterceptor, ResponseFailInterceptor } from "../utssdk/interface";
 // import * as KuxRequest from '../utssdk/interface';
-import { state } from './store/index';
-import { Utils, URL } from './utils/index';
+import { getState, State } from './store/index';
+import { 
+	Utils, 
+	URL,
+	// #ifdef APP-HARMONY
+	getDynamicValue
+	// #endif
+} from './utils/index';
 import { KuxFailImpl } from '../utssdk/unierror';
 
 export class Request {
@@ -17,6 +23,7 @@ export class Request {
 	private cacheKey: string;
 	private requestFailCallback: RequestFailCallback | null;
 	private aborted: boolean;
+	private _state: State | null;
 	
 	constructor (config: UseOptions = {
 		baseURL: ''
@@ -33,12 +40,14 @@ export class Request {
 		this.cacheKey = '';
 		this.requestFailCallback = null;
 		this.aborted = false;
+		this._state = getState();
+		console.log(JSON.stringify(config));
 	}
 	
 	private _mergeOptions (options: RequestConfig): RequestConfig {
 		const useUtils = new Utils();
 		
-		let _options: RequestConfig = {
+		let _options = {
 			query: this.config.query,
 			data: this.config.data,
 			timeout: this.config.timeout,
@@ -55,7 +64,7 @@ export class Request {
 			xhrMessageName: this.config.xhrMessageName,
 			maxCacheSize: this.config.maxCacheSize,
 			openCache: this.config.openCache
-		};
+		} as RequestConfig;
 		
 		if (options.firstIpv4 != null) {
 			_options.firstIpv4 = options.firstIpv4;
@@ -90,18 +99,35 @@ export class Request {
 		}
 		
 		if (options.query != null) {
-			_options.query = _options.query == null ? {} as UTSJSONObject : options.query;
+			_options.query = _options.query == null ? {} as UTSJSONObject : _options.query;
+			// #ifndef APP-HARMONY
 			_options.query = useUtils.deepMerge(JSON.parseObject<UTSJSONObject>(JSON.stringify(_options.query!))!, JSON.parseObject<UTSJSONObject>(JSON.stringify(options.query!))!) as UTSJSONObject;
+			// #endif
+			// #ifdef APP-HARMONY
+			_options.query = useUtils.deepMerge(JSON.parse(JSON.stringify(_options.query!))!, JSON.parse(JSON.stringify(options.query!))!) as UTSJSONObject;
+			// #endif
 		}
 		
-		if (options.data != null) {
-			_options.data = _options.data == null ? {} : options.data;
+		if (options.data != null && typeof options.data == 'object') {
+			_options.data = _options.data == null ? {} as UTSJSONObject : _options.data;
+			// #ifndef APP-HARMONY
 			_options.data = useUtils.deepMerge(JSON.parseObject<UTSJSONObject>(JSON.stringify(_options.data!))!, JSON.parseObject<UTSJSONObject>(JSON.stringify(options.data!))!) as UTSJSONObject;
+			// #endif
+			// #ifdef APP-HARMONY
+			_options.data = useUtils.deepMerge(JSON.parse(JSON.stringify(_options.data!))!, JSON.parse(JSON.stringify(options.data!))!) as UTSJSONObject;
+			// #endif
+		} else {
+			_options.data = options.data
 		}
 		
 		if (options.header != null) {
-			_options.header = _options.header == null ? {} as UTSJSONObject : options.header;
+			_options.header = _options.header == null ? {} as UTSJSONObject : _options.header;
+			// #ifndef APP-HARMONY
 			_options.header = useUtils.deepMerge(JSON.parseObject<UTSJSONObject>(JSON.stringify(_options.header!))!, JSON.parseObject<UTSJSONObject>(JSON.stringify(options.header!))!) as UTSJSONObject;
+			// #endif
+			// #ifdef APP-HARMONY
+			_options.header = useUtils.deepMerge(JSON.parse(JSON.stringify(_options.header!))!, JSON.parse(JSON.stringify(options.header!))!) as UTSJSONObject;
+			// #endif
 		}
 		
 		if (options.debug != null) {
@@ -142,10 +168,12 @@ export class Request {
 	}
 	
 	private async _request (url: string, options: RequestConfig = {} as RequestConfig): Promise<any> {
+		const useUtils = new Utils();
 		// 合并默认配置和用户配置
 		let mergedOptions = options;
 		mergedOptions.url = url;
-		mergedOptions.baseURL = this.baseURL;
+		let interceptorResult: RequestConfig | null = null
+		// mergedOptions.baseURL = this.baseURL;
 		let baseURL = this.baseURL
 		
 		// 这里是为了防止后面请求过程url有值带上了baseURL，所以这里做下二次处理
@@ -156,34 +184,50 @@ export class Request {
 		}
 		
 		if (mergedOptions.needRequestInterceptor == true) {
+			mergedOptions.baseURL = baseURL
 			// 调用请求拦截器
-			state.interceptors.request.forEach((interceptor: RequestInterceptor) => {
-				mergedOptions = interceptor(mergedOptions);
+			this._state!.interceptors.request.forEach((interceptor: RequestInterceptor) => {
+				interceptorResult = interceptor(mergedOptions);
 			});
-			if (state.interceptors.requestSync !== null) {
-				mergedOptions = await (state.interceptors.requestSync as RequestInterceptorSync)(mergedOptions);
+			if (this._state!.interceptors.requestSync != null) {
+				interceptorResult = await (this._state!.interceptors.requestSync as RequestInterceptorSync)(mergedOptions);
+			}
+			if (interceptorResult != null && interceptorResult!.baseURL != null && interceptorResult!.baseURL!.length > 0) {
+				baseURL = interceptorResult!.baseURL!
+			}
+			if (interceptorResult != null) {
+				// #ifndef APP-HARMONY
+				mergedOptions = JSON.parseObject<RequestConfig>(JSON.stringify(useUtils.deepMerge(JSON.parseObject<UTSJSONObject>(JSON.stringify(mergedOptions))!, JSON.parseObject<UTSJSONObject>(JSON.stringify(interceptorResult!))!)))!
+				// #endif
+				// #ifdef APP-HARMONY
+				mergedOptions = JSON.parse(JSON.stringify(useUtils.deepMerge(JSON.parse(JSON.stringify(mergedOptions))!, JSON.parse(JSON.stringify(interceptorResult!))!)))!
+				// #endif
 			}
 		}
 		
-		let path = mergedOptions.url
+		let path = mergedOptions.url ?? url;
 				
 		return new Promise((resolve, reject) => {
 			// 判断当前请求是否被中断
 			if (this.aborted) {
 				reject(new KuxFailImpl(901404));
-				return;
+				throw new KuxFailImpl(901404)
 			}
 			mergedOptions.url = baseURL + path;
 						
 			const useUtils = new Utils();
-			const queryString = useUtils.objToQueryString(mergedOptions.query ?? {});
-			/**
-			 * 处理 query  传参
-			 */
-			if (queryString.length > 0) {
-				// 判断请求地址是否携带参数
-				mergedOptions.url += `${this.getSearchPrefix(`${mergedOptions.url}`)}${queryString}`;
+			if (mergedOptions.query != null) {
+				const queryString = useUtils.objToQueryString(mergedOptions.query ?? {} as UTSJSONObject);
+				/**
+				 * 处理 query  传参
+				 */
+				if (queryString.length > 0) {
+					// 判断请求地址是否携带参数
+					// mergedOptions.url += `${this.getSearchPrefix(`${mergedOptions.url}`)}${queryString}`;
+					mergedOptions.url = `${mergedOptions.url}${this.getSearchPrefix(`${mergedOptions.url}`)}${queryString}`;
+				}
 			}
+			
 			this.beforeSendOptions = mergedOptions;
 			
 			// 判断是否开启请求缓存
@@ -199,7 +243,14 @@ export class Request {
 				}
 				this.isCache = false;
 				if (this._cache.get(_cacheKey) != null) {
-					resolve(this._cache.get(_cacheKey));
+					resolve(
+						// #ifndef APP-HARMONY
+						this._cache.get(_cacheKey)
+						// #endif
+						// #ifdef APP-HARMONY
+						this._cache.get(_cacheKey) as any
+						// #endif
+					);
 				}
 			}
 			
@@ -215,36 +266,70 @@ export class Request {
 				withCredentials: mergedOptions.withCredentials,
 				success: (res: RequestSuccess<any>) => {
 					let response = res.data;
-					
+
 					if (mergedOptions.needResponseInterceptor == true) {
 						/**
 						 * 原始响应拦截
 						 * + `v1.0.11` 及以上版本支持
 						 */
-						state.interceptors.responseXhr.forEach((interceptor: ResponseXhrInterceptor) => {
+						this._state!.interceptors.responseXhr.forEach((interceptor: ResponseXhrInterceptor) => {
 							response = interceptor(res);
 						});
 						// 调用响应拦截
-						state.interceptors.response.forEach((interceptor: ResponseInterceptor) => {
+						this._state!.interceptors.response.forEach((interceptor: ResponseInterceptor) => {
 							response = interceptor(response as any);
 							if (options.xhrResponse == true || this.config.xhrResponse == true) {
 								response = res;
 							}
 						});
+						// 响应拒绝拦截
+						this._state!.interceptors.responseReject.forEach((interceptor: ResponseRejectInterceptor) => {
+							response = interceptor(res, reject);
+						});
 					}
 					// 判断是否有自定义成功状态码
 					if (typeof response === 'object' && mergedOptions.xhrCode != null && mergedOptions.xhrCodeName != null) {
+						// #ifndef APP-HARMONY
 						const _res = response as UTSJSONObject;
 						if (_res.getAny(`${mergedOptions.xhrCodeName}`) != mergedOptions.xhrCode) {
 							if (mergedOptions.xhrMessageName != null) {
 								const error = new KuxFailImpl(900500);
 								error.errMsg = `${_res.getAny(`${mergedOptions.xhrMessageName}`)}`;
+								// #ifndef APP-HARMONY
 								error.cause = new SourceError(JSON.stringify(response));
+								// #endif
+								// #ifdef APP-HARMONY
+								error.cause = new SourceError(JSON.stringify(response)) as Error;
+								// #endif
 								// reject(new KuxFailImpl(900500).error(`${_res.getAny(`${mergedOptions.xhrMessageName}`)}`, response as any));
 							} else {
 								reject(new KuxFailImpl(900500));
 							}
 						}
+						// #endif
+						// #ifdef APP-HARMONY
+						const _res = response as Object;
+						const _value = getDynamicValue(_res, mergedOptions.xhrCodeName);
+						if (_value != mergedOptions.xhrCode) {
+							if (mergedOptions.xhrMessageName != null) {
+								const error = new KuxFailImpl(900500);
+								let msg = getDynamicValue(_res, mergedOptions.xhrMessageName);
+								if (msg == null) {
+									msg = '';
+								}
+								error.errMsg = `${msg}`;
+								// #ifndef APP-HARMONY
+								error.cause = new SourceError(JSON.stringify(response));
+								// #endif
+								// #ifdef APP-HARMONY
+								error.cause = new SourceError(JSON.stringify(response)) as Error;
+								// #endif
+								// reject(new KuxFailImpl(900500).error(`${_res.getAny(`${mergedOptions.xhrMessageName}`)}`, response as any));
+							} else {
+								reject(new KuxFailImpl(900500));
+							}
+						}
+						// #endif
 					}
 					if (mergedOptions.openCache as boolean) {
 						// 判断是否设置最大缓存数量
@@ -264,6 +349,13 @@ export class Request {
 				fail: (fail: RequestFail) => {
 					// console.log(useUtils.buildUniError('【kux-request:request】', fail.errCode, fail.errMsg));
 					this.requestFailCallback?.(fail);
+					// #ifndef APP-HARMONY
+					if (mergedOptions.needResponseInterceptor == true) {
+						this._state!.interceptors.responseFail.forEach((interceptor: ResponseFailInterceptor) => {
+							interceptor(fail, reject);
+						})
+					}
+					// #endif
 					reject(fail);
 				}
 			});
@@ -356,7 +448,7 @@ export class Request {
 		}
 		_options.xhrResponse = options.xhrResponse ?? false;
 		this.aborted = false;
-		_options.customData = options.customData ?? null;
+		_options.customData = options.customData ?? {} as UTSJSONObject;
 		_options.needRequestInterceptor = options.needRequestInterceptor ?? true
 		_options.needResponseInterceptor = options.needResponseInterceptor ?? true
 		return this._request(url, _options);
